@@ -41,7 +41,6 @@ import type {
   UpdateBlogPayload,
 } from "@/types/blog.types";
 import { toast } from "sonner";
-import AlertModal from "./Modals/AlertModal";
 
 type SaveStatus = "idle" | "saved";
 
@@ -206,57 +205,29 @@ export default function BlogEditorPage({
     setLoading(false);
   }, [mode]);
 
-  const hasUnsavedChanges = (): boolean => {
-    if (mode === "new") {
-      return false;
-    }
+  // const hasUnsavedChanges = () : boolean => {
+  //   if (mode === "edit"){
+  //     return false;
+  //   }
+  //   return true;
+  // }
 
-    const titleChanged =
-      titleRef.current !== (initialTitle ?? "");
-
-    const coverChanged =
-      coverRef.current !== (initialCover ?? null);
-
-    const descChanged =
-      descRef.current !== (initialDescription ?? "");
-
-    const primaryChanged =
-      JSON.stringify(primaryRef.current) !==
-      JSON.stringify(initialPrimaryTag ?? null);
-
-    const secondaryChanged =
-      JSON.stringify(secondaryRef.current) !==
-      JSON.stringify(initialSecondayTags ?? []);
-
-    const blocksChanged =
-      JSON.stringify(blocksRef.current) !==
-      JSON.stringify(initialBlocks ?? []);
-
-    return (
-      titleChanged ||
-      coverChanged ||
-      descChanged ||
-      primaryChanged ||
-      secondaryChanged ||
-      blocksChanged
-    );
-  };
-
-  const handleActionHandler = (actionFn : ()=> void)=>{
-    if(hasUnsavedChanges()){
-      setPendingAction(() => actionFn);
-      setOpenUnsavedModal(true);
-    } else{
-      setOpenUnsavedModal(false);
-      actionFn();
-    }
-  }
+  // const handleActionHandler = (actionFn : ()=> void)=>{
+  //   if(hasUnsavedChanges()){
+  //     setPendingAction(() => actionFn);
+  //     setOpenUnsavedModal(true);
+  //   } else{
+  //     setOpenUnsavedModal(false);
+  //     actionFn();
+  //   }
+  // }
 
   const publishHandler = async (blogId?: string) => {
     if (!blogId) return false;
 
     try {
       setIsPublishing(true);
+      await handleSave();
       const res = await publishBlog(blogId, {
         username: localStorage.getItem("username") || ""
       });
@@ -291,6 +262,7 @@ export default function BlogEditorPage({
 
     try {
       setIsPublishing(true);
+      await handleSave();
       const res = await unpublishBlog(blogId, {
         username: localStorage.getItem("username") || ""
       });
@@ -325,6 +297,7 @@ export default function BlogEditorPage({
 
     try {
       setIsArchiving(true);
+      await handleSave();
       const res = await archiveBlog(blogId, {
         username: localStorage.getItem("username") || ""
       });
@@ -359,6 +332,7 @@ export default function BlogEditorPage({
 
     try {
       setIsArchiving(true);
+      await handleSave();
       const res = await unarchiveBlog(blogId, {
         username: localStorage.getItem("username") || ""
       });
@@ -557,7 +531,7 @@ export default function BlogEditorPage({
                   {/* ARCHIVED */}
                   {is_archived ? (
                     <Button
-                      onClick={() => handleActionHandler(() => unarchiveHandler(id))}
+                      onClick={() => unarchiveHandler(id)}
                       disabled={isArchiving || isPublishing || isSaving}
                       variant="outline"
                     >
@@ -568,7 +542,7 @@ export default function BlogEditorPage({
                       {/* PUBLISHED */}
                       {is_published ? (
                         <Button
-                          onClick={() => handleActionHandler(() => unpublishHandler(id))}
+                          onClick={() => unpublishHandler(id)}
                           disabled={isPublishing || isArchiving || isSaving}
                           variant="outline"
                         >
@@ -576,7 +550,7 @@ export default function BlogEditorPage({
                         </Button>
                       ) : (
                         <Button
-                          onClick={() => handleActionHandler(() => publishHandler(id))}
+                          onClick={() => publishHandler(id)}
                           disabled={isPublishing || isArchiving || isSaving}
                           variant="outline"
                         >
@@ -586,7 +560,7 @@ export default function BlogEditorPage({
 
                       {/* ARCHIVE */}
                       <Button
-                        onClick={() => handleActionHandler(() => archiveHandler(id))}
+                        onClick={() => archiveHandler(id)}
                         disabled={isArchiving || isPublishing || isSaving}
                         variant="outline"
                       >
@@ -648,14 +622,6 @@ export default function BlogEditorPage({
           </div>
         </div>
       )}
-      {
-        openUnsavedModal && <AlertModal action={async () => {
-                              if (pendingAction) await pendingAction();
-                                setOpenUnsavedModal(false);
-                              }} 
-                              close={() => setOpenUnsavedModal(false)} 
-                            />
-      }
     </div>
   );
 }
