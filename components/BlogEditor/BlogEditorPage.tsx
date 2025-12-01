@@ -41,6 +41,7 @@ import type {
   UpdateBlogPayload,
 } from "@/types/blog.types";
 import { toast } from "sonner";
+import AlertModal from "./Modals/AlertModal";
 
 type SaveStatus = "idle" | "saved";
 
@@ -108,6 +109,8 @@ export default function BlogEditorPage({
   const [isPublishing, setIsPublishing] = useState(false);
   const [isArchiving, setIsArchiving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [ openUnsavedModal, setOpenUnsavedModal ] = useState<boolean>(false);
+  const [ pendingAction, setPendingAction ] = useState<(()=> void) | null>(null);
 
   // refs for autosave
   const blocksRef = useRef(blocks);
@@ -202,6 +205,52 @@ export default function BlogEditorPage({
     }
     setLoading(false);
   }, [mode]);
+
+  const hasUnsavedChanges = (): boolean => {
+    if (mode === "new") {
+      return false;
+    }
+
+    const titleChanged =
+      titleRef.current !== (initialTitle ?? "");
+
+    const coverChanged =
+      coverRef.current !== (initialCover ?? null);
+
+    const descChanged =
+      descRef.current !== (initialDescription ?? "");
+
+    const primaryChanged =
+      JSON.stringify(primaryRef.current) !==
+      JSON.stringify(initialPrimaryTag ?? null);
+
+    const secondaryChanged =
+      JSON.stringify(secondaryRef.current) !==
+      JSON.stringify(initialSecondayTags ?? []);
+
+    const blocksChanged =
+      JSON.stringify(blocksRef.current) !==
+      JSON.stringify(initialBlocks ?? []);
+
+    return (
+      titleChanged ||
+      coverChanged ||
+      descChanged ||
+      primaryChanged ||
+      secondaryChanged ||
+      blocksChanged
+    );
+  };
+
+  const handleActionHandler = (actionFn : ()=> void)=>{
+    if(hasUnsavedChanges()){
+      setPendingAction(() => actionFn);
+      setOpenUnsavedModal(true);
+    } else{
+      setOpenUnsavedModal(false);
+      actionFn();
+    }
+  }
 
   const publishHandler = async (blogId?: string) => {
     if (!blogId) return false;
@@ -508,7 +557,7 @@ export default function BlogEditorPage({
                   {/* ARCHIVED */}
                   {is_archived ? (
                     <Button
-                      onClick={() => unarchiveHandler(id)}
+                      onClick={() => handleActionHandler(() => unarchiveHandler(id))}
                       disabled={isArchiving || isPublishing || isSaving}
                       variant="outline"
                     >
@@ -519,7 +568,7 @@ export default function BlogEditorPage({
                       {/* PUBLISHED */}
                       {is_published ? (
                         <Button
-                          onClick={() => unpublishHandler(id)}
+                          onClick={() => handleActionHandler(() => unpublishHandler(id))}
                           disabled={isPublishing || isArchiving || isSaving}
                           variant="outline"
                         >
@@ -527,7 +576,7 @@ export default function BlogEditorPage({
                         </Button>
                       ) : (
                         <Button
-                          onClick={() => publishHandler(id)}
+                          onClick={() => handleActionHandler(() => publishHandler(id))}
                           disabled={isPublishing || isArchiving || isSaving}
                           variant="outline"
                         >
@@ -537,7 +586,7 @@ export default function BlogEditorPage({
 
                       {/* ARCHIVE */}
                       <Button
-                        onClick={() => archiveHandler(id)}
+                        onClick={() => handleActionHandler(() => archiveHandler(id))}
                         disabled={isArchiving || isPublishing || isSaving}
                         variant="outline"
                       >
@@ -549,7 +598,7 @@ export default function BlogEditorPage({
                   {/* PREVIEW */}
                   <Button
                     variant="outline"
-                    onClick={() => router.push(`/blog/${slug}`)}
+                    onClick={() => window.open(`/blog/${slug}`, '_blank')}
                   >
                     Preview
                   </Button>
@@ -599,6 +648,14 @@ export default function BlogEditorPage({
           </div>
         </div>
       )}
+      {
+        openUnsavedModal && <AlertModal action={async () => {
+                              if (pendingAction) await pendingAction();
+                                setOpenUnsavedModal(false);
+                              }} 
+                              close={() => setOpenUnsavedModal(false)} 
+                            />
+      }
     </div>
   );
 }
