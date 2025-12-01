@@ -589,7 +589,7 @@ export default function BlogEditorPage({
           </div>
 
           {/* RIGHT — Markdown Preview */}
-          <div className="w-1/2 overflow-y-auto bg-white p-6">
+          <div className="w-1/2 overflow-y-auto bg-white p-6 flex flex-col">
             <div className="mb-6 pb-4 border-b border-gray-200">
               <p className="text-4xl font-bold text-center">
                 {title || "Untitled Blog"}

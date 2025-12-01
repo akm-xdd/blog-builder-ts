@@ -38,6 +38,21 @@ export default function MarkdownPreview({ markdown }: MarkdownPreviewProps) {
             margin-left: auto;
             margin-right: auto;
           }
+          
+          th {
+            border: none;
+            width: 50%;
+            vertical-align: middle;
+            text-align: center;
+          }
+
+          th img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+          }
 
           @media (max-width: 768px) {
             table {

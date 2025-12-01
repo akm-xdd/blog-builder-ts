@@ -117,59 +117,58 @@ export function markdownToBlocks(markdown: string): Block[] {
       continue;
     }
 
-    if (/^\|(.+)\|(.+)\|$/.test(raw)) {
-      const cols = raw.split("|").filter((x) => x.trim() !== "");
+    const tableRowMatch = raw.match(/^\|\s*(.*?)\s*\|\s*(.*?)\s*\|$/);
 
-      if (cols.length === 2) {
-        const left = cols[0].trim();
-        const right = cols[1].trim();
+if (tableRowMatch) {
+  const leftCell = tableRowMatch[1].trim();
+  const rightCell = tableRowMatch[2].trim();
 
-        const leftImg = extractImage(left);
-        const rightImg = extractImage(right);
+  const leftImg = extractImage(leftCell);
+  const rightImg = extractImage(rightCell);
 
-        if (leftImg && !rightImg) {
-          blocks.push({
-            id: newId(),
-            type: "image-text",
-            content: {
-              image: leftImg,
-              text: extractText(right),
-            },
-          });
+    if (leftImg && !rightImg) {
+      blocks.push({
+        id: newId(),
+        type: "image-text",
+        content: {
+          image: leftImg,
+          text: extractText(rightCell),
+        },
+      });
 
-          if (
-            i + 1 < lines.length &&
-            /^\|\s*-+\s*\|\s*-+\s*\|$/.test(lines[i + 1])
-          ) {
-            i += 2;
-          } else {
-            i++;
-          }
-          continue;
-        }
 
-        if (!leftImg && rightImg) {
-          blocks.push({
-            id: newId(),
-            type: "text-image",
-            content: {
-              text: extractText(left),
-              image: rightImg,
-            },
-          });
-
-          if (
-            i + 1 < lines.length &&
-            /^\|\s*-+\s*\|\s*-+\s*\|$/.test(lines[i + 1])
-          ) {
-            i += 2;
-          } else {
-            i++;
-          }
-          continue;
-        }
+      if (
+        i + 1 < lines.length &&
+        /^\|\s*-+\s*\|\s*-+\s*\|$/.test(lines[i + 1])
+      ) {
+        i += 2;
+      } else {
+        i++;
       }
+      continue;
     }
+
+    if (!leftImg && rightImg) {
+      blocks.push({
+        id: newId(),
+        type: "text-image",
+        content: {
+          text: extractText(leftCell),
+          image: rightImg,
+        },
+      });
+
+      if (
+        i + 1 < lines.length &&
+        /^\|\s*-+\s*\|\s*-+\s*\|$/.test(lines[i + 1])
+      ) {
+        i += 2;
+      } else {
+        i++;
+      }
+      continue;
+    }
+  }
 
     if (/^\|\s*-+\s*\|\s*-+\s*\|$/.test(raw)) {
       i++;

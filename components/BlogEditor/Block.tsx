@@ -65,7 +65,7 @@ const Block = ({
 
     const text = isTextImageObject(block.content) ? block.content.text : block.content;
 
-    if (!text) return;
+    // if (!text) return;
 
     const textarea = document.getElementById(
       `block-${block.id}`
