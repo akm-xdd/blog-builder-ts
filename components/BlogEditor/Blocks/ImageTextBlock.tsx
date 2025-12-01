@@ -9,9 +9,10 @@ import { Block } from "@/types/editor.types";
 interface ImageTextBlockProps {
   block: Block;
   updateBlock: (id: string, content: Partial<{ text: string; image: string }>) => void;
+  onKeyDown?: (e: React.KeyboardEvent, id: string | number) => void;
 }
 
-const ImageTextBlock = ({ block, updateBlock } : ImageTextBlockProps) => {
+const ImageTextBlock = ({ block, updateBlock, onKeyDown } : ImageTextBlockProps) => {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [openModal, setOpenModal] = useState<boolean>(false);
 
@@ -95,6 +96,7 @@ const ImageTextBlock = ({ block, updateBlock } : ImageTextBlockProps) => {
         }}
         placeholder={getDefaultContent("paragraph") as string}
         style={{ overflowWrap: "break-word", wordBreak: "break-word" }}
+        onKeyDown={(e) => onKeyDown?.(e, block.id)}
       />
     </div>
   );

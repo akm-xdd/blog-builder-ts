@@ -9,26 +9,12 @@ interface TextBlockProps {
   block: Block;
   updateBlock: (id: string | number, content: string) => void;
   addBlock: (type: Block["type"], afterId: string | number) => void;
+  onKeyDown?: (e: React.KeyboardEvent, id: string | number) => void;
 }
 
-const TextBlock = ({ block, updateBlock, addBlock } : TextBlockProps ) => {
+const TextBlock = ({ block, updateBlock, addBlock, onKeyDown } : TextBlockProps ) => {
   const baseClass =
     "w-full bg-transparent resize-none focus:outline-none text-gray-800 placeholder-gray-400 break-words whitespace-pre-wrap overflow-hidden";
-
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (
-      block.type === "code" ||
-      block.type === "image" ||
-      block.type === "video" ||
-      block.type === "list"
-    )
-      return;
-
-    if (e.key === "Enter") {
-      e.preventDefault();
-      addBlock(block.type, block.id);
-    }
-  };
 
   const autoResize = (el: HTMLTextAreaElement | null) => {
     if (!el) return;
@@ -50,6 +36,7 @@ const TextBlock = ({ block, updateBlock, addBlock } : TextBlockProps ) => {
       placeholder={getDefaultContent(block.type) as string}
       ref={autoResize}
       style={{ overflowWrap: "break-word", wordBreak: "break-word" }}
+      onKeyDown={(e) => onKeyDown?.(e, block.id)}
     />
   );
 };

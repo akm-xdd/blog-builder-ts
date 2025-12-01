@@ -41,6 +41,8 @@ interface BlockProps {
 
   isFirst: boolean;
   isLast: boolean;
+
+  handleKeyDown: (e: React.KeyboardEvent, id: string | number) => void;
 }
 
 const Block = ({
@@ -58,6 +60,7 @@ const Block = ({
   moveBlockDown,
   isFirst,
   isLast,
+  handleKeyDown
 } : BlockProps) => {
 
   const handleFormat = (command: "bold" | "italic" | "code") => {
@@ -110,12 +113,12 @@ const Block = ({
 
       case "text-image":
         return (
-          <TextImageBlock block={block} updateBlock={updateBlock} />
+          <TextImageBlock block={block} updateBlock={updateBlock} onKeyDown={(e) => handleKeyDown(e, block.id)} />
         );
 
       case "image-text":
         return (
-          <ImageTextBlock block={block} updateBlock={updateBlock} />
+          <ImageTextBlock block={block} updateBlock={updateBlock} onKeyDown={(e) => handleKeyDown(e, block.id)} />
         );
 
       default:
@@ -124,6 +127,7 @@ const Block = ({
             block={block}
             updateBlock={updateBlock}
             addBlock={addBlock}
+            onKeyDown={(e) => handleKeyDown(e, block.id)}
           />
         );
     }

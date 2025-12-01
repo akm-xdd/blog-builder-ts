@@ -9,9 +9,10 @@ import { Block } from "@/types/editor.types"; // Ensure your Block type allows `
 interface TextImageBlockProps {
   block: Block;
   updateBlock: (id: string, content: Partial<{ text: string; image: string }>) => void;
+  onKeyDown?: (e: React.KeyboardEvent, id: string | number) => void;
 }
 
-const TextImageBlock = ({ block, updateBlock } : TextImageBlockProps) => {
+const TextImageBlock = ({ block, updateBlock, onKeyDown } : TextImageBlockProps) => {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [openModal, setOpenModal] = useState<boolean>(false);
 
@@ -68,6 +69,7 @@ const TextImageBlock = ({ block, updateBlock } : TextImageBlockProps) => {
         }}
         placeholder={getDefaultContent("paragraph") as string}
         style={{ overflowWrap: "break-word", wordBreak: "break-word" }}
+        onKeyDown={(e) => onKeyDown?.(e, block.id)}
       />
 
       {/* RIGHT — IMAGE */}

@@ -15,6 +15,7 @@ export default function BlockEditor({ blocks, setBlocks }: BlockEditorProps) {
   const [showBlockMenu, setShowBlockMenu] = useState<string | number | null>(
     null
   );
+  const blockRefs = useRef<Record<string | number, HTMLDivElement | null>>({});
   const containerRef = useRef<HTMLDivElement | null>(null);
 
 
@@ -157,6 +158,10 @@ export default function BlockEditor({ blocks, setBlocks }: BlockEditorProps) {
           updated[index],
           updated[index - 1],
         ];
+
+        setTimeout(() => {
+          focusBlockInput(updated[index - 1].id);
+        }, 30);
         return updated;
       });
     },
@@ -175,10 +180,85 @@ export default function BlockEditor({ blocks, setBlocks }: BlockEditorProps) {
           updated[index + 1],
           updated[index],
         ];
+
+        setTimeout(() => {
+          focusBlockInput(updated[index + 1].id);
+        }, 30);
         return updated;
       });
     },
     [setBlocks]
+  );
+
+  const isEditableBlock = (block: BlockType) => {
+    return (
+      block.type === "paragraph" ||
+      block.type === "heading1" ||
+      block.type === "heading2" ||
+      block.type === "heading3" ||
+      block.type === "heading4" ||
+      block.type === "text-image" ||
+      block.type === "image-text"
+    );
+  };
+
+  const findNextEditableBlock = (blocks: BlockType[], startIndex: number) => {
+    for (let i = startIndex + 1; i < blocks.length; i++) {
+      if (isEditableBlock(blocks[i])) return blocks[i];
+    }
+    return null;
+  };
+
+  const focusBlockInput = (blockId: string | number) => {
+    const ref = blockRefs.current[blockId];
+    const el = ref?.querySelector(
+      "textarea, input, [contenteditable='true']"
+    ) as HTMLElement | null;
+
+    el?.focus();
+  };
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent, id: string | number) => {
+      const index = blocks.findIndex((b) => b.id === id);
+
+      if (e.key === "Tab") {
+        e.preventDefault();
+        const index = blocks.findIndex((b) => b.id === id);
+        const nextEditable = findNextEditableBlock(blocks, index);
+        if (nextEditable) {
+          focusBlockInput(nextEditable.id);
+        }
+        return;
+      }
+
+      if (e.ctrlKey && e.key === "ArrowUp") {
+        e.preventDefault();
+        moveBlockUp(id);
+        // setTimeout(() => {
+        //   const newIndex = index - 1;
+        //   if (newIndex >= 0) {
+        //     focusBlockInput(blocks[newIndex].id);
+        //   }
+        // }, 50);
+        return;
+      }
+
+      if (e.ctrlKey && e.key === "ArrowDown") {
+        e.preventDefault();
+        moveBlockDown(id);
+
+        // setTimeout(() => {
+        //   const newIndex = index + 1;
+        //   if (newIndex < blocks.length) {
+        //     focusBlockInput(blocks[newIndex].id);
+        //   }
+        // }, 50);
+
+        return;
+      }
+    },
+    [blocks, moveBlockDown, moveBlockUp]
   );
 
 
@@ -190,23 +270,25 @@ export default function BlockEditor({ blocks, setBlocks }: BlockEditorProps) {
       <main className="max-w-4xl mx-auto px-6 py-20">
         <div className="space-y-2">
           {blocks.map((block) => (
-            <Block
-              key={block.id}
-              block={block}
-              deleteBlock={deleteBlock}
-              updateBlock={updateBlock}
-              addBlock={addBlock}
-              duplicateBlock={duplicateBlock}
-              moveBlockUp={moveBlockUp}
-              moveBlockDown={moveBlockDown}
-              isFirst={blocks[0].id === block.id}
-              isLast={blocks[blocks.length - 1].id === block.id}
-              showBlockMenu={showBlockMenu}
-              setShowBlockMenu={setShowBlockMenu}
-              handleDragOver={handleDragOver}
-              handleDragStart={handleDragStart}
-              handleDrop={handleDrop}
-            />
+            <div key={block.id} ref={(el) => {blockRefs.current[block.id] = el}}>
+              <Block
+                block={block}
+                deleteBlock={deleteBlock}
+                updateBlock={updateBlock}
+                addBlock={addBlock}
+                duplicateBlock={duplicateBlock}
+                moveBlockUp={moveBlockUp}
+                moveBlockDown={moveBlockDown}
+                isFirst={blocks[0].id === block.id}
+                isLast={blocks[blocks.length - 1].id === block.id}
+                showBlockMenu={showBlockMenu}
+                setShowBlockMenu={setShowBlockMenu}
+                handleDragOver={handleDragOver}
+                handleDragStart={handleDragStart}
+                handleDrop={handleDrop}
+                handleKeyDown={handleKeyDown}
+              />
+            </div>
           ))}
         </div>
       </main>
